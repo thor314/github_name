@@ -80,13 +80,10 @@ def parse_args() -> argparse.Namespace:
     Returns argparse.Namespace: The parsed arguments.
     accept arguments to:
     - backdate commits some number of weeks
-    - whether to force push
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--backdate", help="flag: number of weeks to backdate commits", default=52, type=int)
-    parser.add_argument(
-        "--force", help="flag: pass force along to git push", default=random.randrange(COMMIT_MIN, COMMIT_MAX))
     args = parser.parse_args()
 
     if DEBUG: print("args: %s" % args)
@@ -135,7 +132,9 @@ def preexisting_commits(repo_dir: str, date_string: str):
         # Split the output by new lines to count commits. 
         # Filter out empty strings to avoid counting them as commits.
         commit_lines = [line for line in result.stdout.strip().split('\n') if line]
-        return len(commit_lines)
+        n = len(commit_lines)
+        print(f"{n} preexisting commits")
+        return n
     except subprocess.CalledProcessError as e:
         print(f"Error running git command: {e}")
         return 0
@@ -153,7 +152,7 @@ def date_str(date) -> str:
 
     return "%s-%s-%s" % (date.year, month, day)
 
-def git_commit_n_times_on_date(repo: Repo, n, date: datetime.datetime):
+def git_commit_n_times_on_date(repo: Repo, n, date):
     """write `n` empty commits on `date`"""
     print(f"{date} writing {n} commits")
     if DEBUG: return
@@ -169,11 +168,19 @@ def git_commit_n_times_on_date(repo: Repo, n, date: datetime.datetime):
             repo.index.commit(
                 commit_msg, commit_date=aware_datetime, author_date=aware_datetime)
 
-def git_push(repo: Repo, force: bool):
-    if force:
-        os.system("git push -f")
-    else:
-        os.system("git push")
+def git_push(repo: Repo):
+    """
+    Pushes changes to the remote repository using the GitPython library.
+    :param repo: A Repo instance representing the Git repository.
+    """
+    try:
+        # Specify the remote name, assuming it's the default 'origin'
+        remote = repo.remote(name='origin')
+        push_info = remote.push()
+        for info in push_info:
+            print(f"Pushed {info.summary}")
+    except Exception as e:
+        print(f"An error occurred during git push: {e}")
 
 def main():
     print(f"\ndate: {TODAY}, at time: {TIME}") 
@@ -209,7 +216,7 @@ def main():
 
             # github defends against DDOS attacks.
             # be polite and wait 200ms before pushing the next day
-            git_push(repo, args.force)
+            git_push(repo)
             time.sleep(0.2)
         else: 
             print(f"{date} is not nameday")
