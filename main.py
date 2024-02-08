@@ -11,8 +11,8 @@ import socket
 # Set to True while debugging, otherwise False. Disables actively committing.
 DEBUG = False
 # on any given day, choose a random number of commits to add between:
-COMMIT_MIN = 70
-COMMIT_MAX = 130
+COMMIT_MIN = 200
+COMMIT_MAX = 400
 HOSTNAME_MATCH = "boorb" # boorb, birb, crow, starchy
 
 # this script works in a period of 26 weeks, starting from a specific date
