@@ -1,4 +1,3 @@
-import os
 import time
 import subprocess
 import argparse
@@ -6,15 +5,15 @@ from datetime import timedelta
 import datetime
 import pytz
 import random
-from git import Repo # incorrect warning, ignore
+from git import Repo  # incorrect warning, ignore
 import socket
 
 # Set to True while debugging, otherwise False. Disables actively committing.
-DEBUG = True
+DEBUG = False
 # on any given day, choose a random number of commits to add between:
 COMMIT_MIN = 10
 COMMIT_MAX = 20
-HOSTNAME_MATCH = "boorb" # boorb, birb, crow, starchy
+HOSTNAME_MATCH = "boorb"  # boorb, birb, crow, starchy
 
 # this script works in a period of 26 weeks, starting from a specific date
 # if the following is changed, must be 26 weeks from original, or the name-writing will be off
@@ -48,9 +47,10 @@ THOR = [
     [0, 1, 0, 1, 1, 0, 0],
     [0, 0, 1, 0, 0, 1, 0],
     [0, 0, 0, 0, 0, 0, 0],  # 24
-    [1, 1, 1, 1, 1, 1, 1] # insert a bar
+    [1, 1, 1, 1, 1, 1, 1]  # insert a bar
 ]
-THOR_LEN = THOR.__len__() # 26 
+THOR_LEN = THOR.__len__()  # 26
+
 
 def print_name_test(n: list[list[int]]):
     """Print the name. Check that it is correctly formatted."""
@@ -63,6 +63,7 @@ def print_name_test(n: list[list[int]]):
         print(r)
 # print_name_test(THOR)
 
+
 def get_root_directory() -> str:
     """return /home/t/projects/github_name"""
     return "/home/t/projects/github_name"
@@ -73,7 +74,9 @@ def get_root_directory() -> str:
     # stream.close()
     # return root
 
-DUMPFILE = get_root_directory() + "/.dump" # file to dump a billion commits into
+
+DUMPFILE = get_root_directory() + "/.dump"  # file to dump a billion commits into
+
 
 def parse_args() -> argparse.Namespace:
     """
@@ -87,13 +90,15 @@ def parse_args() -> argparse.Namespace:
         "--backdate", help="flag: number of weeks to backdate commits", default=1, type=int)
     args = parser.parse_args()
 
-    if DEBUG: print("args: %s" % args)
-    assert(args.backdate <= 52 and args.backdate >= 1)
+    if DEBUG:
+        print("args: %s" % args)
+    assert args.backdate <= 52 and args.backdate >= 1
     return args
+
 
 def is_name_day(date) -> bool:
     """return whether the date is a nameday."""
-    day = (date.weekday() + 1) % 7 # rotation correction
+    day = (date.weekday() + 1) % 7  # rotation correction
     weeks_since_start_date = ((date - START_DATE) // 7).days
     week = weeks_since_start_date % THOR_LEN
 
@@ -101,6 +106,7 @@ def is_name_day(date) -> bool:
         return False
     else:
         return True
+
 
 def preexisting_commits(repo_dir: str, date):
     """
@@ -131,7 +137,7 @@ def preexisting_commits(repo_dir: str, date):
     ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        # Split the output by new lines to count commits. 
+        # Split the output by new lines to count commits.
         # Filter out empty strings to avoid counting them as commits.
         commit_lines = [line for line in result.stdout.strip().split('\n') if line]
         n = len(commit_lines)
@@ -140,6 +146,7 @@ def preexisting_commits(repo_dir: str, date):
     except subprocess.CalledProcessError as e:
         print(f"Error running git command: {e}")
         return 0
+
 
 def date_str(date) -> str:
     "return the date in format 'YYYY-MM-DD' with 0-padding"
